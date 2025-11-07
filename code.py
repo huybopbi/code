@@ -204,6 +204,20 @@ def send_telegram(message, bot_token, chat_id):
 		logger.error(f"Error sending Telegram message: {str(e)}")
 		return False
 
+def load_paths_from_file(path_file):
+	"""Load .env paths from a file"""
+	try:
+		with open(path_file, 'r') as f:
+			paths = [line.strip() for line in f.readlines() if line.strip()]
+		logger.info(f"Loaded {len(paths)} paths from {path_file}")
+		return paths
+	except FileNotFoundError:
+		logger.warning(f"Path file {path_file} not found, using default paths")
+		return None
+	except Exception as e:
+		logger.error(f"Error loading path file {path_file}: {str(e)}")
+		return None
+
 def cleanup_handler(signum=None, frame=None):
 	"""Graceful shutdown handler"""
 	global PROCESSED_URLS, TOTAL_URLS, FOUND_STRIPE
@@ -225,7 +239,14 @@ def main(url):
 		text = '\033[32;1m#\033[0m '+url
 		headers = {'User-agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'}
 		# Try multiple .env paths
-		paths_to_try = ARGS.paths if (ARGS and ARGS.paths) else ENV_PATHS
+		# Priority: 1) command line --paths, 2) path file, 3) default ENV_PATHS
+		if ARGS and ARGS.paths:
+			paths_to_try = ARGS.paths
+		elif ARGS and ARGS.path_file:
+			file_paths = load_paths_from_file(ARGS.path_file)
+			paths_to_try = file_paths if file_paths else ENV_PATHS
+		else:
+			paths_to_try = ENV_PATHS
 		for path in paths_to_try:
 			try:
 				get_source = SESSION.get(url+path, headers=headers, timeout=(ARGS.timeout if ARGS else 5), verify=(False if (ARGS and ARGS.insecure) else True), allow_redirects=(ARGS.redirects if ARGS else False), stream=True)
@@ -344,6 +365,7 @@ if __name__ == '__main__':
 		parser.add_argument('--json-out', dest='json_out', help='Write JSONL output to this file')
 		parser.add_argument('--telegram-bot-token', dest='telegram_bot_token', help='Telegram bot token for notifications')
 		parser.add_argument('--telegram-chat-id', dest='telegram_chat_id', help='Telegram chat ID to send notifications')
+		parser.add_argument('--path-file', dest='path_file', default='path.txt', help='File containing .env paths (default: path.txt)')
 		args = parser.parse_args()
 		if not args.list:
 			args.list = input("websitelist ? ")

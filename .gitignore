@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Results and logs
+Results/
+*.log
+
+# Session restore
+.nero_swallowtail
+
+# Virtual environments
+venv/
+env/
+ENV/

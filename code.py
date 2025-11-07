@@ -365,7 +365,7 @@ if __name__ == '__main__':
 		parser.add_argument('--json-out', dest='json_out', help='Write JSONL output to this file')
 		parser.add_argument('--telegram-bot-token', dest='telegram_bot_token', help='Telegram bot token for notifications')
 		parser.add_argument('--telegram-chat-id', dest='telegram_chat_id', help='Telegram chat ID to send notifications')
-		parser.add_argument('--path-file', dest='path_file', default='path.txt', help='File containing .env paths (default: path.txt)')
+		parser.add_argument('--path-file', dest='path_file', help='File containing custom .env paths (e.g., path.txt with 500+ paths)')
 		args = parser.parse_args()
 		if not args.list:
 			args.list = input("websitelist ? ")

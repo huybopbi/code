@@ -10,15 +10,26 @@
 
 ## 📖 Giới thiệu
 
-SK Scanner Fast là công cụ quét bảo mật tốc độ cao, được tối ưu hóa để phát hiện:
+Bộ công cụ bảo mật tốc độ cao gồm 2 tools:
+
+### 🚀 SK Scanner Fast
+Công cụ quét bảo mật tốc độ cao, được tối ưu hóa để phát hiện:
 - 🔍 File `.env` bị lộ
 - 🐛 Debug mode exposure
 - 💳 Stripe API keys (`sk_live_*`)
 
 Với tốc độ **500-1000+ URLs/giây**, tool này loại bỏ hoàn toàn database tracking để đạt hiệu suất tối đa.
 
+### 🌐 IP Scanner
+Công cụ quét IP sử dụng masscan để tìm hosts có port mở:
+- ⚡ Tốc độ cao với masscan
+- 🎯 Hỗ trợ quét theo file ranges hoặc toàn bộ Internet
+- 📊 Giới hạn số lượng IP và timeout
+- 🎨 Giao diện đẹp với màu sắc
+
 ## ✨ Tính năng chính
 
+### SK Scanner Fast
 - ⚡ **Tốc độ cực cao**: 500-1000+ URLs/s
 - 🚫 **Không database**: Zero overhead, maximum speed
 - 💳 **Stripe checker**: Auto-check keys qua API
@@ -27,42 +38,62 @@ Với tốc độ **500-1000+ URLs/giây**, tool này loại bỏ hoàn toàn da
 - 📊 **System monitor**: CPU & RAM tracking
 - 🔄 **Async/Concurrent**: Xử lý hàng nghìn requests đồng thời
 
+### IP Scanner
+- ⚡ **Masscan integration**: Tốc độ quét cực nhanh
+- 🎯 **Flexible targeting**: File ranges hoặc toàn bộ Internet (0.0.0.0/0)
+- 📊 **Smart limits**: Giới hạn số IP và timeout
+- 🎨 **Beautiful UI**: Giao diện màu sắc, dễ sử dụng
+- 🔧 **Customizable**: Tùy chỉnh ports, rate, output
+- 📈 **Real-time stats**: Hiển thị tiến độ và kết quả
+
 ## 🚀 Quick Start
 
-### 1. Cài đặt
+### SK Scanner Fast
 
 ```bash
-# Clone repo
-git clone https://github.com/yourusername/sk-scanner-fast.git
-cd sk-scanner-fast
+# 1. Clone repo
+git clone https://github.com/huybopbi/code.git
+cd code
 
-# Cài đặt dependencies
+# 2. Cài đặt dependencies
 pip install -r requirements.txt
+
+# 3. Tạo file URLs
+echo "example.com" > urls.txt
+echo "test.com" >> urls.txt
+
+# 4. Chạy scanner
+python scanner_fast.py
 ```
 
-### 2. Chuẩn bị file URLs
-
-Tạo file `urls.txt`:
-```
-example.com
-test.com
-demo.com
-```
-
-### 3. Chạy scanner
+### IP Scanner
 
 ```bash
-python scanner_fast.py
+# 1. Cài đặt masscan (Linux)
+sudo apt install masscan
+
+# 2. Tạo file IP ranges (tùy chọn)
+echo "1.0.0.0/8" > ranges.txt
+echo "8.8.8.0/24" >> ranges.txt
+
+# 3. Chạy scanner
+sudo bash scanip.sh
 ```
 
 ## 📦 Requirements
 
+### SK Scanner Fast
 - Python 3.7+
 - aiohttp
 - aiofiles
 - urllib3
 - pyfiglet
 - psutil
+
+### IP Scanner
+- Linux/Unix system
+- masscan
+- Root privileges (sudo)
 
 ## 📖 Hướng dẫn chi tiết
 
@@ -89,11 +120,17 @@ Xem [README_FAST.md](README_FAST.md) để biết hướng dẫn đầy đủ.
 
 ## 📁 Output
 
+### SK Scanner Fast
 ```
 ENVS/           # File .env tìm được
 DEBUG/          # Debug mode responses
 SK_LIVE.TXT     # Tất cả Stripe keys
 SK_VALID.TXT    # Valid Stripe keys (nếu bật auto-check)
+```
+
+### IP Scanner
+```
+result.txt      # Danh sách IPs có port mở (hoặc tên tùy chỉnh)
 ```
 
 ## ⚠️ Disclaimer

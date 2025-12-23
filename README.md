@@ -6,6 +6,8 @@
 
 **Maximum Speed Edition** - Scanner tốc độ cao để tìm file .env bị lộ và Stripe keys
 
+![SK Scanner Screenshot](scanner-fast.png)
+
 ## 📖 Giới thiệu
 
 SK Scanner Fast là công cụ quét bảo mật tốc độ cao, được tối ưu hóa để phát hiện:
